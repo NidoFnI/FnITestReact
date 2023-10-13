@@ -3,6 +3,11 @@ require('dotenv').config();
 const cors = require('cors');
 const express = require('express');
 const app = express();
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPEN_AI_API_KEY,
+});
 
 app.use(express.json(), cors({ origin: '*' }));
 
@@ -15,4 +20,30 @@ app.get("/open", (req, res, next) => {
   res.json(["Hello", "World!"]);
 });
 
-app.listen(process.env.PORT || 3000);
+app.post("/ask", async(req, res) => {
+  const prompt = req.body.prompt;
+
+  try{
+    if(prompt == null){
+      throw new Error("No prompt");
+    }
+
+    const response = await openai.createCompletion({
+      model: "gpt-3.5-turbo-instruct",
+      prompt,
+      max_tokens: 7,
+      temperature: .1,
+    });
+
+    const completion = response.data.choices[0].text;
+
+    return res.status(200).json({
+      success: true,
+      message: completion,
+    });
+  } catch (error){
+    console.log(error.message);
+  }
+});
+
+app.listen(process.env.PORT || 3000, () => console.log(`Server is running on port ${process.env.PORT || 3000}`));
