@@ -3,7 +3,7 @@ require('dotenv').config();
 const cors = require('cors');
 const express = require('express');
 const app = express();
-import OpenAI from 'openai';
+const OpenAI = require('openai');
 
 const openai = new OpenAI({
   apiKey: process.env.OPEN_AI_API_KEY,
@@ -28,14 +28,14 @@ app.post("/ask", async(req, res) => {
       throw new Error("No prompt");
     }
 
-    const response = await openai.createCompletion({
+    const response = await openai.completions.create({
       model: "gpt-3.5-turbo-instruct",
       prompt,
       max_tokens: 7,
       temperature: .1,
     });
 
-    const completion = response.data.choices[0].text;
+    const completion = response.choices[0].text.trim();
 
     return res.status(200).json({
       success: true,
